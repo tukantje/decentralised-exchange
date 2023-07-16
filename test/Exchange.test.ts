@@ -14,18 +14,19 @@ describe("Exchange", function () {
 
     const [owner, alice] = await hre.ethers.getSigners();
 
-    const transferTKNToAlice = await token
+    const transferTokenToAlice = await token
       .connect(owner)
       .transfer(alice, hre.ethers.parseEther("1"));
-    await transferTKNToAlice.wait();
+    await transferTokenToAlice.wait();
 
     await setBalance(alice.address, hre.ethers.parseEther("10"));
 
     const approvalTx = await token
       .connect(alice)
-      .approve(exchange.target, hre.ethers.parseEther("0.5"));
+      .approve(exchange.target, hre.ethers.parseEther("1"));
     await approvalTx.wait();
 
+    // Initial addition of liquidity
     const tx = await exchange
       .connect(alice)
       .addLiquidity(hre.ethers.parseEther("0.5"), {
@@ -35,6 +36,18 @@ describe("Exchange", function () {
 
     expect(await token.balanceOf(exchange.target)).to.equal(
       hre.ethers.parseEther("0.5")
+    );
+
+    // Secondary addition of liquidity
+    const secondTx = await exchange
+      .connect(alice)
+      .addLiquidity(hre.ethers.parseEther("0.5"), {
+        value: hre.ethers.parseEther("1"),
+      });
+    await secondTx.wait();
+
+    expect(await token.balanceOf(exchange.target)).to.equal(
+      hre.ethers.parseEther("1")
     );
   });
 });
