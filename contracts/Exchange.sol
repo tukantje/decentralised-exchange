@@ -60,4 +60,26 @@ contract Exchange is ERC20 {
 
     return lpTokensToMint;
   }
+
+  function removeLiquidity(
+    uint256 amountOfLpTokens
+  ) public returns (uint256, uint256) {
+    require(amountOfLpTokens > 0, "Amount of tokens must be greater than 0");
+
+    uint256 ethReserveBalance = address(this).balance;
+    uint256 lpTokenTotalSupply = totalSupply();
+
+    uint256 ethPerLpToken = ethReserveBalance / lpTokenTotalSupply;
+    uint256 ethToReturn = amountOfLpTokens * ethPerLpToken;
+    uint256 tokenPerLpToken = getReserve() / lpTokenTotalSupply;
+    uint256 tokenToReturn = tokenPerLpToken * amountOfLpTokens;
+
+    // Burn the LP tokens from the user. Do this first, to avoid re-entrancy attacks.
+    _burn(msg.sender, amountOfLpTokens);
+
+    payable(msg.sender).transfer(ethToReturn);
+    ERC20(tokenAddress).transfer(msg.sender, tokenToReturn);
+
+    return (ethToReturn, tokenToReturn);
+  }
 }
