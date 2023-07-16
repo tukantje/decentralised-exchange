@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 contract Exchange is ERC20 {
   address public tokenAddress;
@@ -83,6 +84,7 @@ contract Exchange is ERC20 {
     return (ethToReturn, tokenToReturn);
   }
 
+  // getOutputAmountFromSwap calculates the amount of output tokens to be received based on xy = (x + dx)(y - dy)
   function getOutputAmountFromSwap(
     uint256 inputAmount,
     uint256 inputReserve,
@@ -115,5 +117,26 @@ contract Exchange is ERC20 {
     );
 
     ERC20(tokenAddress).transfer(msg.sender, tokensToReceive);
+  }
+
+  function tokenToEthSwap(
+    uint256 tokensToSwap,
+    uint256 minEthToReceive
+  ) public {
+    uint256 tokenReserveBalance = getReserve();
+    uint256 ethToReceive = getOutputAmountFromSwap(
+      tokensToSwap,
+      tokenReserveBalance,
+      address(this).balance
+    );
+
+    require(
+      ethToReceive >= minEthToReceive,
+      "ETH received is less than minimum ETH expected"
+    );
+
+    ERC20(tokenAddress).transferFrom(msg.sender, address(this), tokensToSwap);
+
+    payable(msg.sender).transfer(ethToReceive);
   }
 }
