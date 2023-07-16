@@ -1,13 +1,7 @@
-# Sample Hardhat Project
+# Decentralised Exchange Example
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+A simple implementation of a decentralised exchange.
 
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+Example deployment on Sepolia can be found at;
+[Token](https://sepolia.etherscan.io/address/0xD449F4c4D6066A4AC6be983630B7Ef42c655c0Ad)
+[Exchange](https://sepolia.etherscan.io/address/0x0A02BaBEae3e8E7C27eBf604B536e733448deFFc)
