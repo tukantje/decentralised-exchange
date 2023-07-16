@@ -1,26 +1,33 @@
-import { ethers } from "hardhat";
+import hre from "hardhat";
 
-async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
-
-  const lockedAmount = ethers.parseEther("0.001");
-
-  const lock = await ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
-
-  await lock.waitForDeployment();
-
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
+async function main() {
+  const tokenContract = await hre.ethers.deployContract("Token");
+  await tokenContract.waitForDeployment();
+
+  const exchangeContract = await hre.ethers.deployContract("Exchange", [
+    tokenContract.target,
+  ]);
+  await exchangeContract.waitForDeployment();
+
+  await sleep(30 * 1000);
+
+  await hre.run("verify:verify", {
+    address: tokenContract.target,
+    constructorArguments: [],
+    contract: "contracts/Token.sol:Token",
+  });
+
+  await hre.run("verify:verify", {
+    address: exchangeContract.target,
+    constructorArguments: [tokenContract.target],
+    contract: "contracts/Exchange.sol:Exchange",
+  });
+}
+
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
